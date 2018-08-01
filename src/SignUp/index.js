@@ -6,11 +6,18 @@ import app from "../base";
 class SignUpContainer extends Component {
   handleSignUp = async event => {
     event.preventDefault();
-    const { email, password } = event.target.elements;
+    const { email, password, name } = event.target.elements;
     try {
-      const user = await app
+      var ret = await app
         .auth()
         .createUserWithEmailAndPassword(email.value, password.value);
+      // Create user in users table. If email already existed
+      // createUserWithEmailAndPassword throws error
+      let usersRef = app.database().ref("users");
+      usersRef.child(ret.user.uid).set({
+       name : name.value,
+       email : email.value
+      });
       this.props.history.push("/");
     } catch (error) {
       alert(error);

@@ -4,11 +4,11 @@ import { withRouter } from "react-router";
 import app from "../base";
 
 class LogInContainer extends Component {
-  handleSignUp = async event => {
+  handleLogin = async event => {
     event.preventDefault();
     const { email, password } = event.target.elements;
     try {
-      const user = await app
+      await app
         .auth()
         .signInWithEmailAndPassword(email.value, password.value);
       this.props.history.push("/");
@@ -18,7 +18,7 @@ class LogInContainer extends Component {
   };
 
   render() {
-    return <LogInView onSubmit={this.handleSignUp} />;
+    return <LogInView onSubmit={this.handleLogin} />;
   }
 }
 

@@ -6,6 +6,14 @@ const SignUpView = ({ onSubmit }) => {
       <h1>Sign up</h1>
       <form onSubmit={onSubmit}>
         <label>
+            Name
+            <input
+                name="name"
+                type="name"
+                placeholder="Name"
+            />
+        </label>
+        <label>
           Email
           <input
             name="email"
