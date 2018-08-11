@@ -5,9 +5,6 @@ import firebase from "firebase";
 
 import classNames from 'classnames';
 import { withStyles } from '@material-ui/core/styles';
-import FormControl from '@material-ui/core/FormControl';
-import Button from '@material-ui/core/Button';
-import SaveIcon from '@material-ui/icons/Save';
 import CancelIcon from '@material-ui/icons/Cancel';
 
 import snackbar from "../snackbar";
@@ -28,26 +25,23 @@ import Typography from '@material-ui/core/Typography';
 const styles = theme => ({
     container: {
         display: 'flex',
-        flexWrap: 'wrap',
-    },
-    formControl: {
-        margin: theme.spacing.unit,
-    },
-    button: {
-        margin: theme.spacing.unit,
+        flexWrap: 'wrap'
     },
     leftIcon: {
         marginRight: theme.spacing.unit,
-    },
-    rightIcon: {
-        marginLeft: theme.spacing.unit,
     },
     iconSmall: {
         fontSize: 20,
     },
     card: {
-        minWidth: 400,
-        maxWidth: 400
+        minWidth: 450,
+        //maxWidth: 450
+    },
+    cardheader: {
+      //paddingBottom: 5
+    },
+    aboutTextField: {
+        width: 400
     },
     hidden: {
         display: 'none'
@@ -284,57 +278,75 @@ class ProfileContainer extends Component {
                     container
                     direction="column"
                     justify="center"
-                    //alignItems="center"
-                    alignItems="flex-start"
+                    alignItems="center"
+                    //alignItems="flex-start"
                 >
                     <Grid item>
                         <form onSubmit={this.handlePersonalSubmit} className={classes.padding}>
                             <Card className={classes.card} raised={this.state.personalEditMode}>
-                                <CardHeader
+                                <CardHeader className={classes.cardheader}
                                     avatar= {
                                         <i className="material-icons">person</i>
                                     }
                                     action={
-                                        <IconButton onClick={this.handlePersonalIconClick}>
-                                            {personalIcon}
-                                        </IconButton>
+                                        <div>
+                                            <IconButton type="submit" className={personalSaveClassName} disabled={!this.state.personalEditMode}>
+                                                <i className="material-icons">check_circle</i>
+                                            </IconButton>
+                                            <IconButton onClick={this.handlePersonalIconClick}>
+                                                {personalIcon}
+                                            </IconButton>
+                                        </div>
                                     }
                                     title="Personal"
                                 />
-                                <input type="file" key={this.state.theInputKey || '' } className={personalSaveClassName} disabled={!this.state.personalEditMode} onChange={this.handleProfilePictureChange} />
-                                <CardMedia
-                                    className={classes.media}
-                                    image={this.state.profilePictureUrl}
-                                />
                                 <CardContent>
-                                    {nameHtml}
-                                    <Typography variant="subheading" gutterBottom>
-                                        {this.state.email}
-                                    </Typography>
-                                    <br />
-                                    <TextField
-                                        label="Job Title"
-                                        disabled={!this.state.personalEditMode}
-                                        value={this.state.jobTitle}
-                                        onChange={this.handleJobTitleChange}
-                                    />
-                                    <TextField
-                                        label="Education"
-                                        disabled={!this.state.personalEditMode}
-                                        value={this.state.education}
-                                        onChange={this.handleEducationChange}
-                                    />
-                                    <TextField
-                                        label="Work"
-                                        disabled={!this.state.personalEditMode}
-                                        value={this.state.work}
-                                        onChange={this.handleWorkChange}
-                                    />
-                                    <br />
-                                    <Button type="submit" variant="contained" size="small" className={personalSaveClassName} disabled={!this.state.personalEditMode}>
-                                        <SaveIcon className={classNames(classes.leftIcon, classes.iconSmall)} />
-                                        Save
-                                    </Button>
+                                    <Grid container spacing={24}>
+                                        <Grid item xs={6}>
+                                            <input type="file" key={this.state.theInputKey || '' } className={personalSaveClassName} disabled={!this.state.personalEditMode} onChange={this.handleProfilePictureChange} />
+                                            <CardMedia
+                                                className={classes.media}
+                                                image={this.state.profilePictureUrl}
+                                            />
+                                            {nameHtml}
+                                            <Typography variant="subheading" gutterBottom>
+                                                {this.state.email}
+                                            </Typography>
+                                        </Grid>
+                                        <Grid item xs={6}>
+                                            <Grid
+                                                container
+                                                direction="column"
+                                                justify="center"
+                                                alignItems="center"
+                                            >
+                                                <Grid item>
+                                                    <TextField
+                                                        label="Job Title"
+                                                        disabled={!this.state.personalEditMode}
+                                                        value={this.state.jobTitle}
+                                                        onChange={this.handleJobTitleChange}
+                                                    />
+                                                </Grid>
+                                                <Grid item>
+                                                    <TextField
+                                                        label="Education"
+                                                        disabled={!this.state.personalEditMode}
+                                                        value={this.state.education}
+                                                        onChange={this.handleEducationChange}
+                                                    />
+                                                </Grid>
+                                                <Grid item>
+                                                    <TextField
+                                                        label="Work"
+                                                        disabled={!this.state.personalEditMode}
+                                                        value={this.state.work}
+                                                        onChange={this.handleWorkChange}
+                                                    />
+                                                </Grid>
+                                            </Grid>
+                                        </Grid>
+                                    </Grid>
                                 </CardContent>
                             </Card>
                         </form>
@@ -347,29 +359,42 @@ class ProfileContainer extends Component {
                                         <i className="material-icons">person_outline</i>
                                     }
                                     action={
-                                        <IconButton onClick={this.handleAboutIconClick}>
-                                            {aboutIcon}
-                                        </IconButton>
+                                        <div>
+                                            <IconButton type="submit" className={aboutSaveClassName} disabled={!this.state.aboutEditMode}>
+                                                <i className="material-icons">check_circle</i>
+                                            </IconButton>
+                                            <IconButton onClick={this.handleAboutIconClick}>
+                                                {aboutIcon}
+                                            </IconButton>
+                                        </div>
                                     }
                                     title="About"
                                 />
                                 <CardContent>
-                                    <FormControl className={classes.formControl}>
-                                        <TextField
-                                            //label="About"
-                                            multiline
-                                            rows="6"
-                                            margin="normal"
-                                            disabled={!this.state.aboutEditMode}
-                                            value={this.state.about}
-                                            onChange={this.handleAboutChange}
-                                        />
-                                    </FormControl>
+                                    <Grid container spacing={24}>
+                                        <Grid item xs={12}>
+                                            <Grid
+                                                container
+                                                direction="column"
+                                                justify="center"
+                                                alignItems="center"
+                                            >
+                                                <Grid item>
+                                                    <TextField
+                                                        //label="About"
+                                                        multiline
+                                                        className={classes.aboutTextField}
+                                                        rows="6"
+                                                        margin="normal"
+                                                        disabled={!this.state.aboutEditMode}
+                                                        value={this.state.about}
+                                                        onChange={this.handleAboutChange}
+                                                    />
+                                                </Grid>
+                                            </Grid>
+                                        </Grid>
+                                    </Grid>
                                 </CardContent>
-                                <Button type="submit" value="save" variant="contained" size="small" className={aboutSaveClassName} disabled={!this.state.aboutEditMode}>
-                                    <SaveIcon className={classNames(classes.leftIcon, classes.iconSmall)} />
-                                    Save
-                                </Button>
                             </Card>
                         </form>
                     </Grid>
