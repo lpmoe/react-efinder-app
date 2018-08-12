@@ -23,6 +23,8 @@ import CardMedia from '@material-ui/core/CardMedia';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 
+//import ReactAutosuggestExample from './react-autosuggest'
+
 const styles = theme => ({
     container: {
         display: 'flex',
@@ -182,33 +184,9 @@ class ProfileContainer extends Component {
         }
     };
 
-    handleNameChange = event => {
-        this.setState({ name: event.target.value });
-    };
-
-    handleJobTitleChange = event => {
-        this.setState({ jobTitle: event.target.value });
-    };
-
-    handleEducationChange = event => {
-        this.setState({ education: event.target.value });
-    };
-
-    handleWorkChange = event => {
-        this.setState({ work: event.target.value });
-    };
-
-    handleFBChange = event => {
-        this.setState({ facebook_url: event.target.value });
-    };
-
-    handleTwitterChange = event => {
-        this.setState({ twitter_url: event.target.value });
-    };
-
-    handleLinkedinChange = event => {
-        this.setState({ linkedin_url: event.target.value });
-    };
+    handleChange(key, evt) {
+        this.setState({ [key]: evt.target.value });
+    }
 
     handlePersonalSubmit = async event => {
         event.preventDefault();
@@ -313,7 +291,7 @@ class ProfileContainer extends Component {
             nameHtml = <TextField
                 disabled={!this.state.personalEditMode}
                 value={this.state.name}
-                onChange={this.handleNameChange}
+                onChange={(e) => this.handleChange('name', e)}
             />
         }
         else {
@@ -384,7 +362,7 @@ class ProfileContainer extends Component {
                                                         label="Job Title"
                                                         disabled={!this.state.personalEditMode}
                                                         value={this.state.jobTitle}
-                                                        onChange={this.handleJobTitleChange}
+                                                        onChange={(e) => this.handleChange('jobTitle', e)}
                                                     />
                                                 </Grid>
                                                 <Grid item>
@@ -392,7 +370,7 @@ class ProfileContainer extends Component {
                                                         label="Education"
                                                         disabled={!this.state.personalEditMode}
                                                         value={this.state.education}
-                                                        onChange={this.handleEducationChange}
+                                                        onChange={(e) => this.handleChange('education', e)}
                                                     />
                                                 </Grid>
                                                 <Grid item>
@@ -400,7 +378,7 @@ class ProfileContainer extends Component {
                                                         label="Work"
                                                         disabled={!this.state.personalEditMode}
                                                         value={this.state.work}
-                                                        onChange={this.handleWorkChange}
+                                                        onChange={(e) => this.handleChange('work', e)}
                                                     />
                                                 </Grid>
                                                 <br />
@@ -427,7 +405,7 @@ class ProfileContainer extends Component {
                                                         placeholder="Facebook URL"
                                                         className={personalSaveHidden}
                                                         value={this.state.facebook_url}
-                                                        onChange={this.handleFBChange}
+                                                        onChange={(e) => this.handleChange('facebook_url', e)}
                                                     />
                                                 </Grid>
                                             </Grid>
@@ -440,7 +418,7 @@ class ProfileContainer extends Component {
                                                         placeholder="LinkedIn URL"
                                                         className={personalSaveHidden}
                                                         value={this.state.linkedin_url}
-                                                        onChange={this.handleLinkedinChange}
+                                                        onChange={(e) => this.handleChange('linkedin_url', e)}
                                                     />
                                                 </Grid>
                                             </Grid>
@@ -453,7 +431,7 @@ class ProfileContainer extends Component {
                                                         placeholder="Twitter URL"
                                                         className={personalSaveHidden}
                                                         value={this.state.twitter_url}
-                                                        onChange={this.handleTwitterChange}
+                                                        onChange={(e) => this.handleChange('twitter_url', e)}
                                                     />
                                                 </Grid>
                                             </Grid>
@@ -500,7 +478,7 @@ class ProfileContainer extends Component {
                                                         margin="normal"
                                                         disabled={!this.state.aboutEditMode}
                                                         value={this.state.about}
-                                                        onChange={this.handleAboutChange}
+                                                        onChange={(e) => this.handleChange('about', e)}
                                                     />
                                                 </Grid>
                                             </Grid>
