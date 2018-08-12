@@ -21,11 +21,15 @@ import CardMedia from '@material-ui/core/CardMedia';
 
 //import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
+import Button from '@material-ui/core/Button';
 
 const styles = theme => ({
     container: {
         display: 'flex',
         flexWrap: 'wrap'
+    },
+    button: {
+        margin: theme.spacing.unit,
     },
     leftIcon: {
         marginRight: theme.spacing.unit,
@@ -66,7 +70,10 @@ class ProfileContainer extends Component {
                       jobTitle : '',
                       education: '',
                       work: '',
-                      profilePicture: null,
+                      facebook_url: '',
+                      twitter_url: '',
+                      linkedin_url: '',
+                      profilePicture: '',
                       profilePictureUrl: "/generic_profile.jpg",
                       theInputKey: '',
                       personalEditMode : false,
@@ -114,19 +121,38 @@ class ProfileContainer extends Component {
         });
     }
 
+    setStateKeyToVal(key, value){
+        // If null, state doesn't get updated. For example, if state was 'hi' and attempted to set state to null/undefined,
+        // the value will remain as 'hi'
+        if (value) {
+            this.setState({ [key]: value });
+        }
+        else {
+            this.setState({ [key]: '' });
+        }
+    }
+
     loadPersonal(){
         let userObj = this.state.userObj;
-        this.setState({ name: userObj.name });
-        this.setState({ email: userObj.email });
-        this.setState({ jobTitle: userObj.jobTitle });
-        this.setState({ education: userObj.education });
-        this.setState({ work: userObj.work });
-        this.setState({ profilePicture: null });
+        let myStringArray = ['name', 'email', 'jobTitle', 'education', 'work', 'profilePicture', 'facebook_url', 'linkedin_url', 'twitter_url'];
+        let arrayLength = myStringArray.length;
+        for (let i = 0; i < arrayLength; i++) {
+            let key = myStringArray[i];
+            this.setStateKeyToVal(key, userObj[key]);
+        }
+
+        this.setState({ profilePicture: '' });
         this.setState({ theInputKey: Math.random().toString(36) });
     }
 
     loadAbout(){
-        this.setState({ about: this.state.userObj.about });
+        let userObj = this.state.userObj;
+        let myStringArray = ['about'];
+        let arrayLength = myStringArray.length;
+        for (let i = 0; i < arrayLength; i++) {
+            let key = myStringArray[i];
+            this.setStateKeyToVal(key, userObj[key]);
+        }
     }
 
     handlePersonalIconClick = () => {
@@ -134,6 +160,25 @@ class ProfileContainer extends Component {
         // Cancel was clicked
         if (this.state.personalEditMode) {
             this.loadPersonal();
+        }
+    };
+
+    handleSocialMediaClick = event => {
+        let src = event.target.src;
+        if (src.includes("facebook")) {
+            if (this.state.facebook_url) {
+                window.location = this.state.facebook_url;
+            }
+        }
+        else if (src.includes("linkedin")) {
+            if (this.state.linkedin_url) {
+                window.location = this.state.linkedin_url;
+            }
+        }
+        else if (src.includes("twitter")) {
+            if (this.state.twitter_url) {
+                window.location = this.state.twitter_url;
+            }
         }
     };
 
@@ -153,42 +198,54 @@ class ProfileContainer extends Component {
         this.setState({ work: event.target.value });
     };
 
+    handleFBChange = event => {
+        this.setState({ facebook_url: event.target.value });
+    };
+
+    handleTwitterChange = event => {
+        this.setState({ twitter_url: event.target.value });
+    };
+
+    handleLinkedinChange = event => {
+        this.setState({ linkedin_url: event.target.value });
+    };
+
     handlePersonalSubmit = async event => {
         event.preventDefault();
-        let usersRef = app.database().ref("users");
-        let uid = this.props.uid;
-        let userObj = usersRef.child(uid);
         let that = this;
-        let success = true;
-        userObj.update({
-            name : this.state.name,
-            jobTitle : this.state.jobTitle,
-            education : this.state.education,
-            work : this.state.work
-        }).catch(function(error) {
-            success = false;
-            that.handleOpenNotification("error", "Save of personal profile failed: " + error);
-        });
-
-        let file = this.state.profilePicture;
-        if (file) {
-            let metadata = {
-                'contentType': file.type
-            };
-            firebase.storage().ref().child(this.getProfilePath()).put(file, metadata).then(function(snapshot) {
-                //console.log('Uploaded', snapshot.totalBytes, 'bytes.');
-                //console.log('File metadata:', snapshot.metadata);
-                that.setProfileUrl();
-            }).catch(function(error) {
-                success = false;
-                that.handleOpenNotification("error", "Upload of profile picture failed: " + error);
+        try {
+            let usersRef = app.database().ref("users");
+            let uid = this.props.uid;
+            let userObj = usersRef.child(uid);
+            // Note: This will save to the database empty string. Not sure if that matters
+            userObj.update({
+                name : this.state.name,
+                jobTitle : this.state.jobTitle,
+                education : this.state.education,
+                work : this.state.work,
+                facebook_url : this.state.facebook_url,
+                linkedin_url : this.state.linkedin_url,
+                twitter_url : this.state.twitter_url
             });
-        }
 
-        this.setState({ personalEditMode: false });
-        if (success) {
-            this.handleOpenNotification("success", "Successfully updated personal profile!");
+            let file = this.state.profilePicture;
+            if (file) {
+                let metadata = {
+                    'contentType': file.type
+                };
+                firebase.storage().ref().child(this.getProfilePath()).put(file, metadata).then(function(snapshot) {
+                    //console.log('Uploaded', snapshot.totalBytes, 'bytes.');
+                    //console.log('File metadata:', snapshot.metadata);
+                    that.setProfileUrl();
+                })
+            }
+
             this.setUserObj();
+            this.setState({ personalEditMode: false });
+            this.handleOpenNotification("success", "Successfully updated personal profile!");
+        }
+        catch(error) {
+            this.handleOpenNotification("error", "Save of personal profile failed: " + error);
         }
     };
 
@@ -206,19 +263,17 @@ class ProfileContainer extends Component {
 
     handleAboutSubmit = async event => {
         event.preventDefault();
-        let usersRef = app.database().ref("users");
-        let that = this;
-        let success = true;
-        usersRef.child(this.props.uid).update({
-            about : this.state.about
-        }).catch(function(error) {
-            success = false;
-            that.handleOpenNotification("error", "Save of about profile failed: " + error);
-        });
-        this.setState({ aboutEditMode: false });
-        if (success) {
-            this.handleOpenNotification("success", "Successfully updated about profile!");
+        try{
+            let usersRef = app.database().ref("users");
+            usersRef.child(this.props.uid).update({
+                about : this.state.about
+            });
             this.setUserObj();
+            this.setState({ aboutEditMode: false });
+            this.handleOpenNotification("success", "Successfully updated about profile!");
+        }
+        catch(error) {
+            this.handleOpenNotification("error", "Save of about profile failed: " + error);
         }
     };
 
@@ -247,11 +302,13 @@ class ProfileContainer extends Component {
         let MySnackbarContentWrapper = snackbar;
         let classes = this.props.classes;
 
-        let personalSaveClassName = classes.hidden;
+        let personalSaveHidden = classes.hidden;
+        let personalSaveHiddenOnEdit = '';
         let personalIcon = <i className="material-icons">edit</i>;
         let nameHtml;
         if (this.state.personalEditMode) {
-            personalSaveClassName = '';
+            personalSaveHidden = '';
+            personalSaveHiddenOnEdit = classes.hidden;
             personalIcon = <CancelIcon />;
             nameHtml = <TextField
                 disabled={!this.state.personalEditMode}
@@ -278,9 +335,7 @@ class ProfileContainer extends Component {
                     container
                     direction="column"
                     justify="center"
-                    alignItems="center"
-                    //alignItems="flex-start"
-                >
+                    alignItems="center">
                     <Grid item>
                         <form onSubmit={this.handlePersonalSubmit} className={classes.padding}>
                             <Card className={classes.card} raised={this.state.personalEditMode}>
@@ -290,7 +345,7 @@ class ProfileContainer extends Component {
                                     }
                                     action={
                                         <div>
-                                            <IconButton type="submit" className={personalSaveClassName} disabled={!this.state.personalEditMode}>
+                                            <IconButton type="submit" className={personalSaveHidden} disabled={!this.state.personalEditMode}>
                                                 <i className="material-icons">check_circle</i>
                                             </IconButton>
                                             <IconButton onClick={this.handlePersonalIconClick}>
@@ -303,7 +358,7 @@ class ProfileContainer extends Component {
                                 <CardContent>
                                     <Grid container spacing={24}>
                                         <Grid item xs={6}>
-                                            <input type="file" key={this.state.theInputKey || '' } className={personalSaveClassName} disabled={!this.state.personalEditMode} onChange={this.handleProfilePictureChange} />
+                                            <input type="file" key={this.state.theInputKey || '' } className={personalSaveHidden} disabled={!this.state.personalEditMode} onChange={this.handleProfilePictureChange} />
                                             <CardMedia
                                                 className={classes.media}
                                                 image={this.state.profilePictureUrl}
@@ -312,6 +367,10 @@ class ProfileContainer extends Component {
                                             <Typography variant="subheading" gutterBottom>
                                                 {this.state.email}
                                             </Typography>
+                                            <Button className={classNames(classes.button, personalSaveHiddenOnEdit)} variant="contained" size="small">
+                                                <i className="material-icons">chat_bubble</i>
+                                                <span className='lowercase_button'>Message Me</span>
+                                            </Button>
                                         </Grid>
                                         <Grid item xs={6}>
                                             <Grid
@@ -342,6 +401,59 @@ class ProfileContainer extends Component {
                                                         disabled={!this.state.personalEditMode}
                                                         value={this.state.work}
                                                         onChange={this.handleWorkChange}
+                                                    />
+                                                </Grid>
+                                                <br />
+                                                <Grid item>
+                                                    <IconButton disabled={!this.state.facebook_url} className={personalSaveHiddenOnEdit} onClick={this.handleSocialMediaClick}>
+                                                        <img alt='facebook' src="/facebook-box.png" />
+                                                    </IconButton>
+                                                    <IconButton disabled={!this.state.linkedin_url} className={personalSaveHiddenOnEdit} onClick={this.handleSocialMediaClick}>
+                                                        <img alt='linkedin' src="/linkedin-box.png" />
+                                                    </IconButton>
+                                                    <IconButton disabled={!this.state.twitter_url} className={personalSaveHiddenOnEdit} onClick={this.handleSocialMediaClick}>
+                                                        <img alt='twitter' src="/twitter-box.png" />
+                                                    </IconButton>
+                                                </Grid>
+                                            </Grid>
+                                        </Grid>
+                                        <Grid className={personalSaveHidden} item xs={12}>
+                                            <Grid container spacing={8}>
+                                                <Grid item>
+                                                    <img className={personalSaveHidden} alt='facebook' src="/facebook-box.png" />
+                                                </Grid>
+                                                <Grid item>
+                                                    <TextField
+                                                        placeholder="Facebook URL"
+                                                        className={personalSaveHidden}
+                                                        value={this.state.facebook_url}
+                                                        onChange={this.handleFBChange}
+                                                    />
+                                                </Grid>
+                                            </Grid>
+                                            <Grid container spacing={8}>
+                                                <Grid item>
+                                                    <img className={personalSaveHidden} alt='linkedin' src="/linkedin-box.png" />
+                                                </Grid>
+                                                <Grid item>
+                                                    <TextField
+                                                        placeholder="LinkedIn URL"
+                                                        className={personalSaveHidden}
+                                                        value={this.state.linkedin_url}
+                                                        onChange={this.handleLinkedinChange}
+                                                    />
+                                                </Grid>
+                                            </Grid>
+                                            <Grid container spacing={8}>
+                                                <Grid item>
+                                                    <img className={personalSaveHidden} alt='twitter' src="/twitter-box.png" />
+                                                </Grid>
+                                                <Grid item>
+                                                    <TextField
+                                                        placeholder="Twitter URL"
+                                                        className={personalSaveHidden}
+                                                        value={this.state.twitter_url}
+                                                        onChange={this.handleTwitterChange}
                                                     />
                                                 </Grid>
                                             </Grid>
