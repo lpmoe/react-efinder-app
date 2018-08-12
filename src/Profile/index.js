@@ -23,7 +23,7 @@ import CardMedia from '@material-ui/core/CardMedia';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 
-//import ReactAutosuggestExample from './react-autosuggest'
+import CustomReactSelect from './customReactSelect'
 
 const styles = theme => ({
     container: {
@@ -81,9 +81,13 @@ class ProfileContainer extends Component {
                       personalEditMode : false,
                       about : '',
                       aboutEditMode : false,
+                      skillEditMode : false,
                       saveNotificationOpen: false,
                       notificationVariant : '',
-                      notificationMessage: ''};
+                      notificationMessage: '',
+                      skillsMulti: null};
+
+        this.handleCustomSelectChange = this.handleCustomSelectChange.bind(this);
     }
 
     componentWillMount(){
@@ -155,6 +159,10 @@ class ProfileContainer extends Component {
             let key = myStringArray[i];
             this.setStateKeyToVal(key, userObj[key]);
         }
+    }
+
+    loadSkill(){
+
     }
 
     handlePersonalIconClick = () => {
@@ -255,6 +263,30 @@ class ProfileContainer extends Component {
         }
     };
 
+    handleSkillIconClick = () => {
+        this.setState({ skillEditMode: !this.state.skillEditMode });
+        // Cancel was clicked
+        if (this.state.skillEditMode) {
+            this.loadSkill();
+        }
+    };
+
+    handleSkillSubmit = async event => {
+        event.preventDefault();
+        try{
+            //let usersRef = app.database().ref("users");
+            //usersRef.child(this.props.uid).update({
+            //    about : this.state.about
+            //});
+            this.setUserObj();
+            this.setState({ skillEditMode: false });
+            this.handleOpenNotification("success", "Successfully updated skills profile!");
+        }
+        catch(error) {
+            this.handleOpenNotification("error", "Save of skills profile failed: " + error);
+        }
+    };
+
     // notificationVariant: success info warning error
     handleOpenNotification = (notificationVariant, msg) => {
         this.setState({ notificationVariant: notificationVariant,
@@ -275,6 +307,10 @@ class ProfileContainer extends Component {
         //console.log(selectorFile);
         this.setState({ profilePicture: selectorFile });
     };
+
+    handleCustomSelectChange(key, value) {
+      this.setState({ [key]: value });
+    }
 
     render() {
         let MySnackbarContentWrapper = snackbar;
@@ -305,6 +341,13 @@ class ProfileContainer extends Component {
         if (this.state.aboutEditMode) {
             aboutSaveClassName = '';
             aboutIcon = <CancelIcon />;
+        }
+
+        let skillSaveClassName = classes.hidden;
+        let skillIcon = <i className="material-icons">edit</i>;
+        if (this.state.skillEditMode) {
+            skillSaveClassName = '';
+            skillIcon = <CancelIcon />;
         }
 
         return (
@@ -484,6 +527,36 @@ class ProfileContainer extends Component {
                                             </Grid>
                                         </Grid>
                                     </Grid>
+                                </CardContent>
+                            </Card>
+                        </form>
+                    </Grid>
+                    <Grid item>
+                        <form onSubmit={this.handleSkillSubmit} className={classes.padding}>
+                            <Card className={classes.card} raised={this.state.skillEditMode}>
+                                <CardHeader
+                                    avatar= {
+                                        <img alt='trophy' src="/trophy-variant.png" />
+                                    }
+                                    action={
+                                        <div>
+                                            <IconButton type="submit" className={skillSaveClassName} disabled={!this.state.skillEditMode}>
+                                                <i className="material-icons">check_circle</i>
+                                            </IconButton>
+                                            <IconButton onClick={this.handleSkillIconClick}>
+                                                {skillIcon}
+                                            </IconButton>
+                                        </div>
+                                    }
+                                    title="Skills"
+                                />
+                                <CardContent>
+                                  <CustomReactSelect
+                                    id='skillsMulti'
+                                    onChange={this.handleCustomSelectChange}
+                                    value={this.state.skillsMulti}
+                                    placeholder="Select or type skills to add"
+                                  />
                                 </CardContent>
                             </Card>
                         </form>
