@@ -43,6 +43,7 @@ const styles = theme => ({
     card: {
         minWidth: 450,
         //maxWidth: 450
+        //minHeight: 500
     },
     cardheader: {
       //paddingBottom: 5
@@ -89,6 +90,7 @@ class ProfileContainer extends Component {
                       saveNotificationOpen: false,
                       notificationVariant : '',
                       notificationMessage: '',
+                      skillSuggestions : [],
                       skills : [],
                       untrackedSkills : [],
                       skillsMulti : null};
@@ -103,6 +105,7 @@ class ProfileContainer extends Component {
             that.loadAbout();
             that.loadSkill();
         });
+        this.setSkillSuggestions();
         this.setProfileUrl();
     }
 
@@ -131,6 +134,25 @@ class ProfileContainer extends Component {
         let that = this;
         firebase.storage().ref().child(this.getProfilePath()).getDownloadURL().then(function(url) {
             that.setState({profilePictureUrl: url});
+        });
+    }
+
+    setSkillSuggestions(){
+        let skillSuggestionsRef = app.database().ref("skills");
+        let that = this;
+        // TODO - Can use eventually when writing Manage Skills page
+        //skillSuggestionsRef.child(0).set({
+        //  name : 'ReactJS'
+        //});
+        skillSuggestionsRef.on('value', function(snap){
+            var skillArr = [];
+            snap.forEach(function(childNodes){
+                //let skillKey = childNodes.key;
+                let skillVal = childNodes.val();
+                skillArr.push({ value: skillVal.name,
+                                label: skillVal.name });
+            });
+            that.setState({ skillSuggestions : skillArr });
         });
     }
 
@@ -290,7 +312,6 @@ class ProfileContainer extends Component {
         this.setState({ skillEditMode: !this.state.skillEditMode });
         // Cancel was clicked
         if (this.state.skillEditMode) {
-            console.log("SHOULD LOAD SKILL, CANCEL!")
             this.loadSkill();
         }
     };
@@ -391,6 +412,7 @@ class ProfileContainer extends Component {
                           value={this.state.skillsMulti}
                           placeholder="Select or type skills to add"
                           isDisabled={!this.state.skillEditMode}
+                          suggestions={this.state.skillSuggestions}
                         />
         }
 

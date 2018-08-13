@@ -8,18 +8,19 @@ import Chip from "@material-ui/core/Chip";
 import MenuItem from "@material-ui/core/MenuItem";
 import { emphasize } from "@material-ui/core/styles/colorManipulator";
 
-// TODO - Need to retrieve suggestions from db and have area for admin to manage skills (to add unrecognized to suggestion list)
-const suggestions = [{ label: 'Java' }, { label: 'UI Design' }].map(
-  suggestion => ({
-    value: suggestion.label,
-    label: suggestion.label
-  })
-);
-
+// TODO - Need to figure out how to get suggestion div to pop out of the card like it does here:
+// https://material-ui.com/demos/autocomplete/
+// This is the only reason height is 350, which makes card grow just to support the suggestions div
 const styles = theme => ({
   root: {
     flexGrow: 1,
-    height: 250
+    height: 350
+  },
+  valueContainer: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    flex: 1,
+    alignItems: 'center',
   },
   input: {
     display: "flex",
@@ -75,6 +76,10 @@ function Option(props) {
   );
 }
 
+function ValueContainer(props) {
+  return <div className={props.selectProps.classes.valueContainer}>{props.children}</div>;
+}
+
 function MultiValue(props) {
   return (
     <Chip
@@ -94,6 +99,7 @@ function MultiValue(props) {
 const components = {
   Option,
   Control,
+  ValueContainer,
   MultiValue
 };
 
@@ -115,7 +121,7 @@ class CustomReactSelect extends React.Component {
         <NoSsr>
           <CreatableSelect
             classes={classes}
-            options={suggestions}
+            options={this.props.suggestions || []}
             components={components}
             onChange={this.handleChange(this.props.id)}
             value={this.props.value}
