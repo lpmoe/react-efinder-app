@@ -380,7 +380,8 @@ class ProfileContainer extends Component {
         let skillSaveClassName = classes.hidden;
         let skillIcon = <i className="material-icons">edit</i>;
         // Would've preferred to just be able to disableUnderline to accomplish this, but couldn't get that working
-        let skillHtml = this.state.skills.map(data => {return <Chip key={data} label={data} className={classes.chip} />;});
+        let skillsToLoop = this.state.skills ? this.state.skills : [];
+        let skillHtml = skillsToLoop.map(data => {return <Chip key={data} label={data} className={classes.chip} />;});
         if (this.state.skillEditMode) {
             skillSaveClassName = '';
             skillIcon = <CancelIcon />;
