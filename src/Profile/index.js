@@ -24,6 +24,7 @@ import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 
 import CustomReactSelect from './customReactSelect'
+import Chip from "@material-ui/core/Chip";
 
 const styles = theme => ({
     container: {
@@ -59,6 +60,9 @@ const styles = theme => ({
     media: {
         height: 0,
         paddingTop: '56.25%', // 16:9
+    },
+    chip: {
+      margin: theme.spacing.unit / 2,
     }
 });
 
@@ -85,7 +89,9 @@ class ProfileContainer extends Component {
                       saveNotificationOpen: false,
                       notificationVariant : '',
                       notificationMessage: '',
-                      skillsMulti: null};
+                      skills : [],
+                      untrackedSkills : [],
+                      skillsMulti : null};
 
         this.handleCustomSelectChange = this.handleCustomSelectChange.bind(this);
     }
@@ -95,6 +101,7 @@ class ProfileContainer extends Component {
         this.setUserObj(function(){
             that.loadPersonal();
             that.loadAbout();
+            that.loadSkill();
         });
         this.setProfileUrl();
     }
@@ -162,7 +169,23 @@ class ProfileContainer extends Component {
     }
 
     loadSkill(){
-
+        let userObj = this.state.userObj;
+        this.setState({skills : userObj.skills});
+        let skillsForMulti = [];
+        // Need to set it from userObj and not just set skills state because setState is atomic
+        let skillsArr = this.state.userObj.skills;
+        if (skillsArr) {
+            for (let i = 0; i < skillsArr.length; i++) {
+                let valForMulti = {label : skillsArr[i], value : skillsArr[i]};
+                // TODO - Need to determine if new
+                let isNew = false;
+                if (isNew) {
+                  valForMulti.__isNew__ = true;
+                }
+                skillsForMulti.push(valForMulti);
+            }
+        }
+        this.setState({ skillsMulti: skillsForMulti });
     }
 
     handlePersonalIconClick = () => {
@@ -267,6 +290,7 @@ class ProfileContainer extends Component {
         this.setState({ skillEditMode: !this.state.skillEditMode });
         // Cancel was clicked
         if (this.state.skillEditMode) {
+            console.log("SHOULD LOAD SKILL, CANCEL!")
             this.loadSkill();
         }
     };
@@ -274,10 +298,10 @@ class ProfileContainer extends Component {
     handleSkillSubmit = async event => {
         event.preventDefault();
         try{
-            //let usersRef = app.database().ref("users");
-            //usersRef.child(this.props.uid).update({
-            //    about : this.state.about
-            //});
+            let usersRef = app.database().ref("users");
+            usersRef.child(this.props.uid).update({
+                skills : this.state.skills
+            });
             this.setUserObj();
             this.setState({ skillEditMode: false });
             this.handleOpenNotification("success", "Successfully updated skills profile!");
@@ -309,7 +333,17 @@ class ProfileContainer extends Component {
     };
 
     handleCustomSelectChange(key, value) {
-      this.setState({ [key]: value });
+        let skillsArr = [];
+        let untrackedSkillsArr = [];
+        for (let i = 0; i < value.length; i++) {
+            skillsArr.push(value[i].label);
+            if (value[i].__isNew__) {
+                untrackedSkillsArr.push(value[i].label);
+            }
+        }
+        this.setState({ [key]: value,
+                        skills: skillsArr,
+                        untrackedSkills : untrackedSkillsArr });
     }
 
     render() {
@@ -345,9 +379,18 @@ class ProfileContainer extends Component {
 
         let skillSaveClassName = classes.hidden;
         let skillIcon = <i className="material-icons">edit</i>;
+        // Would've preferred to just be able to disableUnderline to accomplish this, but couldn't get that working
+        let skillHtml = this.state.skills.map(data => {return <Chip key={data} label={data} className={classes.chip} />;});
         if (this.state.skillEditMode) {
             skillSaveClassName = '';
             skillIcon = <CancelIcon />;
+            skillHtml = <CustomReactSelect
+                          id='skillsMulti'
+                          onChange={this.handleCustomSelectChange}
+                          value={this.state.skillsMulti}
+                          placeholder="Select or type skills to add"
+                          isDisabled={!this.state.skillEditMode}
+                        />
         }
 
         return (
@@ -551,12 +594,7 @@ class ProfileContainer extends Component {
                                     title="Skills"
                                 />
                                 <CardContent>
-                                  <CustomReactSelect
-                                    id='skillsMulti'
-                                    onChange={this.handleCustomSelectChange}
-                                    value={this.state.skillsMulti}
-                                    placeholder="Select or type skills to add"
-                                  />
+                                  {skillHtml}
                                 </CardContent>
                             </Card>
                         </form>

@@ -8,6 +8,7 @@ import Chip from "@material-ui/core/Chip";
 import MenuItem from "@material-ui/core/MenuItem";
 import { emphasize } from "@material-ui/core/styles/colorManipulator";
 
+// TODO - Need to retrieve suggestions from db and have area for admin to manage skills (to add unrecognized to suggestion list)
 const suggestions = [{ label: 'Java' }, { label: 'UI Design' }].map(
   suggestion => ({
     value: suggestion.label,
@@ -119,6 +120,7 @@ class CustomReactSelect extends React.Component {
             onChange={this.handleChange(this.props.id)}
             value={this.props.value}
             placeholder={this.props.placeholder}
+            isDisabled={this.props.isDisabled}
             isMulti
           />
         </NoSsr>
