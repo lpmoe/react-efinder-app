@@ -1,5 +1,8 @@
+// TODO - Change to tab indent on 2 spaces
 import React, { Component } from "react";
 import { withRouter } from "react-router";
+// TODO - Should make a util/userUtil.js to house common user functions
+// (similar to what was done with skillUtil.js)
 import app from "../base";
 import firebase from "firebase";
 
@@ -23,8 +26,10 @@ import CardMedia from '@material-ui/core/CardMedia';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 
-import CustomReactSelect from './customReactSelect'
+import CustomReactSelect from '../customReactSelect'
 import Chip from "@material-ui/core/Chip";
+
+import SkillUtil from '../util/skillUtil'
 
 const styles = theme => ({
     container: {
@@ -138,22 +143,7 @@ class ProfileContainer extends Component {
     }
 
     setSkillSuggestions(){
-        let skillSuggestionsRef = app.database().ref("skills");
-        let that = this;
-        // TODO - Can use eventually when writing Manage Skills page
-        //skillSuggestionsRef.child(0).set({
-        //  name : 'ReactJS'
-        //});
-        skillSuggestionsRef.on('value', function(snap){
-            var skillArr = [];
-            snap.forEach(function(childNodes){
-                //let skillKey = childNodes.key;
-                let skillVal = childNodes.val();
-                skillArr.push({ value: skillVal.name,
-                                label: skillVal.name });
-            });
-            that.setState({ skillSuggestions : skillArr });
-        });
+      SkillUtil.setTrackedSkills(this, 'skillSuggestions', true);
     }
 
     setStateKeyToVal(key, value){
@@ -192,22 +182,13 @@ class ProfileContainer extends Component {
 
     loadSkill(){
         let userObj = this.state.userObj;
-        this.setState({skills : userObj.skills});
-        let skillsForMulti = [];
         // Need to set it from userObj and not just set skills state because setState is atomic
-        let skillsArr = this.state.userObj.skills;
-        if (skillsArr) {
-            for (let i = 0; i < skillsArr.length; i++) {
-                let valForMulti = {label : skillsArr[i], value : skillsArr[i]};
-                // TODO - Need to determine if new
-                let isNew = false;
-                if (isNew) {
-                  valForMulti.__isNew__ = true;
-                }
-                skillsForMulti.push(valForMulti);
-            }
+        let skillArr = userObj.skills;
+        this.setState({skills : skillArr});
+        if (!skillArr) {
+          skillArr = [];
         }
-        this.setState({ skillsMulti: skillsForMulti });
+        SkillUtil.setSkillsMulti(this, 'skillsMulti', skillArr);
     }
 
     handlePersonalIconClick = () => {
@@ -316,21 +297,27 @@ class ProfileContainer extends Component {
         }
     };
 
-    handleSkillSubmit = async event => {
-        event.preventDefault();
-        try{
-            let usersRef = app.database().ref("users");
-            usersRef.child(this.props.uid).update({
-                skills : this.state.skills
-            });
-            this.setUserObj();
-            this.setState({ skillEditMode: false });
-            this.handleOpenNotification("success", "Successfully updated skills profile!");
-        }
-        catch(error) {
-            this.handleOpenNotification("error", "Save of skills profile failed: " + error);
-        }
-    };
+  handleSkillSubmit = async event => {
+    event.preventDefault();
+    try{
+      let usersRef = app.database().ref("users");
+      usersRef.child(this.props.uid).update({
+          skills : this.state.skills
+      });
+
+      // Add any untrackedSkills to db
+      if (this.state.untrackedSkills.length > 0) {
+        SkillUtil.addUntrackedSkills(this.state.untrackedSkills);
+      }
+
+      this.setUserObj();
+      this.setState({ skillEditMode: false });
+      this.handleOpenNotification("success", "Successfully updated skills profile!");
+    }
+    catch(error) {
+        this.handleOpenNotification("error", "Save of skills profile failed: " + error);
+    }
+  };
 
     // notificationVariant: success info warning error
     handleOpenNotification = (notificationVariant, msg) => {

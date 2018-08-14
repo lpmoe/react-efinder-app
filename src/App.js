@@ -1,8 +1,5 @@
-//https://maksimivanov.com/posts/firebase-react-tutorial
-
 import React, { Component } from 'react';
 import 'typeface-roboto'
-// import logo from './logo.svg';
 import './App.css';
 import { BrowserRouter as Router, Route } from "react-router-dom";
 
@@ -12,24 +9,7 @@ import Home from "./Home";
 import LogIn from "./LogIn";
 import SignUp from "./SignUp";
 import Profile from "./Profile";
-
-
-/*class App extends Component {
-
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
-      </div>
-    );
-  }
-}*/
+import ManageSkills from "./Admin/manageSkills"
 
 class App extends Component {
   state = { loading: true, authenticated: false, user: null, currentUser: null };
@@ -43,7 +23,8 @@ class App extends Component {
           currentUser: user,
           loading: false
         });
-      } else {
+      }
+      else {
         this.setState({
           authenticated: false,
           currentUser: null,
@@ -71,10 +52,10 @@ class App extends Component {
           />
           <Route exact path="/login" component={LogIn} />
           <Route exact path="/signup" component={SignUp} />
-          {/*<Route exact path="/profile" something="foo" component={Profile} currentUser={currentUser} />*/}
-            <Route exact path='/profile' render={(props) => (
-                <Profile {...props} uid={currentUser.uid} />
-            )}/>
+          <Route exact path='/profile' render={(props) => (
+              <Profile {...props} uid={currentUser.uid} />
+          )}/>
+          <Route exact path="/admin/manageSkills" component={ManageSkills} />
         </div>
       </Router>
     );

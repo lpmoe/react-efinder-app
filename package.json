@@ -5,6 +5,7 @@
   "dependencies": {
     "firebase": "latest",
     "react": "latest",
+    "create-react-class": "latest",
     "react-select": "latest",
     "react-dom": "latest",
     "react-router": "latest",
