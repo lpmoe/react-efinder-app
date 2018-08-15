@@ -143,7 +143,7 @@ class ProfileContainer extends Component {
     }
 
     setSkillSuggestions(){
-      SkillUtil.setTrackedSkills(this, 'skillSuggestions', true);
+      SkillUtil.setTrackedSkills(this, 'skillSuggestions');
     }
 
     setStateKeyToVal(key, value){
@@ -300,6 +300,7 @@ class ProfileContainer extends Component {
   handleSkillSubmit = async event => {
     event.preventDefault();
     try{
+      // TODO - Prevent saving a skill whose label is a number
       let usersRef = app.database().ref("users");
       usersRef.child(this.props.uid).update({
           skills : this.state.skills

@@ -1,3 +1,5 @@
+// TODO - Rename to notification
+// TODO - There is a lot of state/functions needed to define in file that uses. Move that to this file
 // https://material-ui.com/demos/snackbars/#customized-snackbars
 import React from 'react';
 import classNames from 'classnames';

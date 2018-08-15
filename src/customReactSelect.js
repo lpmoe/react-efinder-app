@@ -110,7 +110,9 @@ class CustomReactSelect extends React.Component {
   }
 
   handleChange = name => value => {
-    this.props.onChange(name, value);
+    if ('onChange' in this.props) {
+      this.props.onChange(name, value);
+    }
   };
 
   render() {

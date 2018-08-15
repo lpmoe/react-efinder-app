@@ -26,50 +26,32 @@ const SkillUtil = createReactClass({
         }
       })
     },
-    setTrackedSkills: function(callingClass, key, asObj = false) {
+    setTrackedSkills: function(callingClass, key, keyForValues = null) {
       let skillSuggestionsRef = app.database().ref('skills');
-      let that = this;
-      skillSuggestionsRef.on('value', function(snap){
+      skillSuggestionsRef.orderByKey().on('value', function(snap){
           var skillArr = [];
+          var skillVals = [];
           snap.forEach(function(childNodes){
               let skillKey = childNodes.key;
               // Saving untracked key to skills. Only want number keys
               if (!isNaN(skillKey)) {
                 let skillVal = childNodes.val();
-                if (asObj) {
-                  skillArr.push({ value: skillVal.name,
-                                  label: skillVal.name });
-                }
-                else {
-                  skillArr.push(skillVal.name);
-                }
+                skillArr.push({ value: skillKey,
+                                label: skillVal.name });
+                skillVals.push(skillKey);
               }
           });
-          if (asObj) {
-            callingClass.setState({[key] : skillArr});
-          }
-          else {
-            that.setSkillsMulti(callingClass, key, skillArr);
+          callingClass.setState({[key] : skillArr});
+          if (keyForValues) {
+            callingClass.setState({[keyForValues] : skillVals});
           }
       });
     },
-    setSkillsMulti(callingClass, key, skillArr) {
-      let skillsForMulti = [];
-      for (let i = 0; i < skillArr.length; i++) {
-          let valForMulti = {label : skillArr[i], value : skillArr[i]};
-          // TODO - Need to determine if new
-          let isNew = false;
-          if (isNew) {
-            valForMulti.__isNew__ = true;
-          }
-          skillsForMulti.push(valForMulti);
-      }
-      callingClass.setState({ [key] : skillsForMulti });
-    },
-    addUntrackedSkills(newSkills) {
+    // override of true allows ability to set untracked array to newSkills arr
+    addUntrackedSkills(newSkills, override = false) {
       let untrackedSkillsRef = this.getUntrackedSkillsRef();
       untrackedSkillsRef.once('value', function(snap) {
-        if (snap.exists()) {
+        if (snap.exists() && !override) {
           newSkills = newSkills.concat(snap.val()).filter((v, i, a) => a.indexOf(v) === i);
         }
         untrackedSkillsRef.set(newSkills);

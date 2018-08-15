@@ -11,6 +11,8 @@ import SignUp from "./SignUp";
 import Profile from "./Profile";
 import ManageSkills from "./Admin/manageSkills"
 
+import "./extensions"
+
 class App extends Component {
   state = { loading: true, authenticated: false, user: null, currentUser: null };
 
