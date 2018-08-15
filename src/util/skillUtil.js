@@ -26,6 +26,14 @@ const SkillUtil = createReactClass({
         }
       })
     },
+    setSkillsMulti(callingClass, key, skillArr) {
+      let skillsForMulti = [];
+      for (let i = 0; i < skillArr.length; i++) {
+          let valForMulti = {label : skillArr[i], value : skillArr[i]};
+          skillsForMulti.push(valForMulti);
+      }
+      callingClass.setState({ [key] : skillsForMulti });
+    },
     setTrackedSkills: function(callingClass, key, keyForValues = null) {
       let skillSuggestionsRef = app.database().ref('skills');
       skillSuggestionsRef.orderByKey().on('value', function(snap){
