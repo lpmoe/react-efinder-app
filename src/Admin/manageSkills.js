@@ -56,6 +56,10 @@ class ManageSkillContainer extends Component {
       this.setState({ saveNotificationOpen: false });
   };
 
+  // Note: If you delete an existing skill, design decision to not add it back
+  // to untracked list, regardless if user has it listed as a skill. If a user
+  // does a skill save it will not add it. It would only add it back to untracked
+  // if user remove the skill and then added it back
   handleSubmit = async event => {
     event.preventDefault();
     try {
@@ -103,7 +107,10 @@ class ManageSkillContainer extends Component {
       SkillUtil.addUntrackedSkills(remainingSuggestionNames, true);
 
       // Add new skills (as well as promoted skills)
-      let max = Number(existing[existing.length-1]);
+      let max = 0
+      if (existing.length > 0) {
+        max = Number(existing[existing.length-1]);
+      }
       let skillsRef = SkillUtil.getSkillsRef();
       let allNewSkills = suggestionsToPromote.concat(newSkills).filter((v, i, a) => a.indexOf(v) === i);;
       for (let i = 0; i < allNewSkills.length; i++) {

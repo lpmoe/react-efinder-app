@@ -1,4 +1,4 @@
-// TODO - Change to tab indent on 2 spaces
+// TODO - Change to tab indent on 2 spaces in this file
 import React, { Component } from "react";
 import { withRouter } from "react-router";
 // TODO - Should make a util/userUtil.js to house common user functions
@@ -92,13 +92,16 @@ class ProfileContainer extends Component {
                       about : '',
                       aboutEditMode : false,
                       skillEditMode : false,
+                      wantedSkillEditMode : false,
                       saveNotificationOpen: false,
                       notificationVariant : '',
                       notificationMessage: '',
                       skillSuggestions : [],
                       skills : [],
+                      wantedSkills : [],
                       untrackedSkills : [],
-                      skillsMulti : null};
+                      skillsMulti : null,
+                      wantedSkillsMulti : null};
 
         this.handleCustomSelectChange = this.handleCustomSelectChange.bind(this);
     }
@@ -108,7 +111,8 @@ class ProfileContainer extends Component {
         this.setUserObj(function(){
             that.loadPersonal();
             that.loadAbout();
-            that.loadSkill();
+            that.loadSkill('skills');
+            that.loadSkill('wantedSkills')
         });
         this.setSkillSuggestions();
         this.setProfileUrl();
@@ -180,16 +184,17 @@ class ProfileContainer extends Component {
         }
     }
 
-    loadSkill(){
-        let userObj = this.state.userObj;
-        // Need to set it from userObj and not just set skills state because setState is atomic
-        let skillArr = userObj.skills;
-        this.setState({skills : skillArr});
-        if (!skillArr) {
-          skillArr = [];
-        }
-        SkillUtil.setSkillsMulti(this, 'skillsMulti', skillArr);
+  loadSkill(key){
+    let userObj = this.state.userObj;
+    // Need to set it from userObj and not just set skills state because setState is atomic
+    let skillArr = userObj[key];
+    this.setState({[key] : skillArr});
+    if (!skillArr) {
+      skillArr = [];
     }
+    let skillMultiKey = key + 'Multi'
+    SkillUtil.setSkillsMulti(this, skillMultiKey, skillArr);
+  }
 
     handlePersonalIconClick = () => {
         this.setState({ personalEditMode: !this.state.personalEditMode });
@@ -289,13 +294,14 @@ class ProfileContainer extends Component {
         }
     };
 
-    handleSkillIconClick = () => {
-        this.setState({ skillEditMode: !this.state.skillEditMode });
-        // Cancel was clicked
-        if (this.state.skillEditMode) {
-            this.loadSkill();
-        }
-    };
+  handleSkillIconClick = (key) => {
+    this.setState({ [key] : !this.state[key] });
+    // Cancel was clicked
+    if (this.state[key]) {
+      let modKey = key.replace('EditMode', '') + 's'
+      this.loadSkill(modKey);
+    }
+  };
 
   handleSkillSubmit = async event => {
     event.preventDefault();
@@ -317,6 +323,29 @@ class ProfileContainer extends Component {
     }
     catch(error) {
         this.handleOpenNotification("error", "Save of skills profile failed: " + error);
+    }
+  };
+
+  // TODO - Combine into single function with handleSkillSubmit
+  handleWantedSkillSubmit = async event => {
+    event.preventDefault();
+    try{
+      let usersRef = app.database().ref("users");
+      usersRef.child(this.props.uid).update({
+          wantedSkills : this.state.wantedSkills
+      });
+
+      // Add any untrackedSkills to db
+      if (this.state.untrackedSkills.length > 0) {
+        SkillUtil.addUntrackedSkills(this.state.untrackedSkills);
+      }
+
+      this.setUserObj();
+      this.setState({ wantedSkillEditMode: false });
+      this.handleOpenNotification("success", "Successfully updated 'Skills I am looking for' profile!");
+    }
+    catch(error) {
+        this.handleOpenNotification("error", "Save of 'Skills I am looking for' profile failed: " + error);
     }
   };
 
@@ -342,6 +371,13 @@ class ProfileContainer extends Component {
     };
 
     handleCustomSelectChange(key, value) {
+        let skillKey = null;
+        if (key === 'skillsMulti') {
+          skillKey = 'skills';
+        }
+        else if (key === 'wantedSkillsMulti'){
+          skillKey = 'wantedSkills';
+        }
         let skillsArr = [];
         let untrackedSkillsArr = [];
         for (let i = 0; i < value.length; i++) {
@@ -351,7 +387,7 @@ class ProfileContainer extends Component {
             }
         }
         this.setState({ [key]: value,
-                        skills: skillsArr,
+                        [skillKey]: skillsArr,
                         untrackedSkills : untrackedSkillsArr });
     }
 
@@ -400,6 +436,26 @@ class ProfileContainer extends Component {
                           value={this.state.skillsMulti}
                           placeholder="Select or type skills to add"
                           isDisabled={!this.state.skillEditMode}
+                          suggestions={this.state.skillSuggestions}
+                        />
+        }
+
+        // TODO: Lots of copied code from skills above, but oh well. Different variables need to be set.
+        // A single JSON object could be used to reduce copied code
+        let wantedSkillSaveClassName = classes.hidden;
+        let wantedSkillIcon = <i className="material-icons">edit</i>;
+        // Would've preferred to just be able to disableUnderline to accomplish this, but couldn't get that working
+        let wantedSkillsToLoop = this.state.wantedSkills ? this.state.wantedSkills : [];
+        let wantedSkillHtml = wantedSkillsToLoop.map(data => {return <Chip key={data} label={data} className={classes.chip} />;});
+        if (this.state.wantedSkillEditMode) {
+            wantedSkillSaveClassName = '';
+            wantedSkillIcon = <CancelIcon />;
+            wantedSkillHtml = <CustomReactSelect
+                          id='wantedSkillsMulti'
+                          onChange={this.handleCustomSelectChange}
+                          value={this.state.wantedSkillsMulti}
+                          placeholder="Select or type skills to add"
+                          isDisabled={!this.state.wantedSkillEditMode}
                           suggestions={this.state.skillSuggestions}
                         />
         }
@@ -585,6 +641,11 @@ class ProfileContainer extends Component {
                             </Card>
                         </form>
                     </Grid>
+                    {/*
+                      TODO - Eventually have a loop for Skills and Wanted Skills since the code is very similar, but
+                      with different variables and image icon. Also the size of the card when entering edit mode
+                      is really large. This was to support the dropdown from not getting clipped. Need to resolve.
+                    */}
                     <Grid item>
                         <form onSubmit={this.handleSkillSubmit} className={classes.padding}>
                             <Card className={classes.card} raised={this.state.skillEditMode}>
@@ -597,7 +658,7 @@ class ProfileContainer extends Component {
                                             <IconButton type="submit" className={skillSaveClassName} disabled={!this.state.skillEditMode}>
                                                 <i className="material-icons">check_circle</i>
                                             </IconButton>
-                                            <IconButton onClick={this.handleSkillIconClick}>
+                                            <IconButton onClick={() => this.handleSkillIconClick('skillEditMode')}>
                                                 {skillIcon}
                                             </IconButton>
                                         </div>
@@ -610,6 +671,31 @@ class ProfileContainer extends Component {
                             </Card>
                         </form>
                     </Grid>
+                    <Grid item>
+                        <form onSubmit={this.handleWantedSkillSubmit} className={classes.padding}>
+                            <Card className={classes.card} raised={this.state.wantedSkillEditMode}>
+                                <CardHeader
+                                    avatar= {
+                                        <i className="material-icons">search</i>
+                                    }
+                                    action={
+                                        <div>
+                                            <IconButton type="submit" className={wantedSkillSaveClassName} disabled={!this.state.wantedSkillEditMode}>
+                                                <i className="material-icons">check_circle</i>
+                                            </IconButton>
+                                            <IconButton onClick={() => this.handleSkillIconClick('wantedSkillEditMode')}>
+                                                {wantedSkillIcon}
+                                            </IconButton>
+                                        </div>
+                                    }
+                                    title="Skills I am looking for"
+                                />
+                                <CardContent>
+                                  {wantedSkillHtml}
+                                </CardContent>
+                            </Card>
+                        </form>
+                    </Grid>
                 </Grid>
                 <Snackbar
                     anchorOrigin={{
@@ -617,7 +703,7 @@ class ProfileContainer extends Component {
                         horizontal: 'left',
                     }}
                     open={this.state.saveNotificationOpen}
-                    //autoHideDuration={6000}
+                    // autoHideDuration={6000}
                     onClose={this.handleNotificationClose}
                 >
                     <MySnackbarContentWrapper
